@@ -1,6 +1,7 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import RegistrationForm from '@/components/RegistrationForm';
 
 
 const events = [
@@ -9,15 +10,11 @@ const events = [
   { id: 3, name: 'Art Exhibition', date: '2024-09-15' },
 ];
 export default async function Home() {
-  // const { userId } = auth()
-  // const user = await currentUser()
-
-  // if (!userId || !user) {
-  //   redirect('/sign-in')
-  // }
+  
   return (
     <div className="flex items-center justify-center h-full">
-      <h1 className="text-3xl font-bold mb-6">Upcoming Events</h1>
+       <RegistrationForm />
+      {/* <h1 className="text-3xl font-bold mb-6">Upcoming Events</h1>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {events.map((event) => (
           <div key={event.id} className="bg-white shadow-md rounded-lg p-6">
@@ -31,7 +28,7 @@ export default async function Home() {
             </Link>
           </div>
         ))}
-      </div>
+      </div> */}
     </div>
   );
 }

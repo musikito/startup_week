@@ -6,3 +6,9 @@ body {
   background-color: rgb(23, 23, 23);
   color: white;
 }
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+}
