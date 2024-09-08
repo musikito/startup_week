@@ -1,7 +1,7 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { QrReader } from 'react-qr-reader';
+import { useState } from 'react'
+import { QrReader } from 'react-qr-reader'
 
 export default function QRScanner() {
   const [scannedData, setScannedData] = useState('')
