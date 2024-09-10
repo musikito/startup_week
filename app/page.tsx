@@ -12,7 +12,9 @@ const events = [
 export default async function Home() {
   
   return (
+    
     <div className="flex items-center justify-center h-full">
+      
        <RegistrationForm />
       {/* <h1 className="text-3xl font-bold mb-6">Upcoming Events</h1>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

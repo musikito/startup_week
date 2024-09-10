@@ -3,13 +3,16 @@
  */
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { redirect, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { log } from 'console';
 
 export default function RegistrationForm() {
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,6 +21,20 @@ export default function RegistrationForm() {
   });
 
   const router = useRouter();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  /**
+   * Retrieves the user's ID from local storage and sets the `userId` state if it exists.
+   * This effect runs once when the component is mounted.
+   */
+  useEffect(() => {
+    const storeUserId = localStorage.getItem('userId');
+    // console.log("storeUserId", storeUserId);
+    if (storeUserId) {
+      setUserId(storeUserId);
+    }
+  }, []);
+
 
   /**
    * Handles changes to the form data by updating the `formData` state with the new values.
@@ -36,11 +53,14 @@ export default function RegistrationForm() {
         body: JSON.stringify(formData)
       })
       if (response.ok) {
-        alert('Registration successful!')
-        const data = await response.json();
+        alert('Registration successful!');
+        const { userId } = await response.json();
+        localStorage.setItem('userId', userId);
+        setUserId(userId);
+        // const data = await response.json();
         // router.push(`/qr/${data.id}`);
-      //  redirect("/components/QRScanner");
-      router.push("/qrscanner");
+        //  redirect("/components/QRScanner");
+        // router.push("/qrscanner");
       } else {
         alert('Registration failed. Please try again.')
       }
@@ -51,49 +71,60 @@ export default function RegistrationForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
-      <div>
-        <Label htmlFor="name">Name (Required)</Label>
-        <Input
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <div>
-        <Label htmlFor="email">Email address (Required)</Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <div>
-        <Label htmlFor="phone">Phone number (Required)</Label>
-        <Input
-          id="phone"
-          name="phone"
-          type="tel"
-          value={formData.phone}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <div>
-        <Label htmlFor="affiliation">Affiliation</Label>
-        <Input
-          id="affiliation"
-          name="affiliation"
-          value={formData.affiliation}
-          onChange={handleChange}
-        />
-      </div>
-      <Button type="submit" className="w-full">Register</Button>
-    </form>
+    <main className="flex flex-col items-center justify-center h-screen">
+      { !userId ? ( 
+      
+        <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
+          <div>
+            <Label htmlFor="name">Name (Required)</Label>
+            <Input
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="email">Email address (Required)</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="phone">Phone number (Required)</Label>
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="affiliation">Affiliation</Label>
+            <Input
+              id="affiliation"
+              name="affiliation"
+              value={formData.affiliation}
+              onChange={handleChange}
+            />
+          </div>
+          <Button type="submit" className="w-full">Register</Button>
+        </form>
+      ) : (
+        <Link href="/qrscanner" >
+          <Button type="submit" className="w-full">Scan your event</Button>
+        </Link>
+       
+      )} 
+    </main>
+
   );
 };

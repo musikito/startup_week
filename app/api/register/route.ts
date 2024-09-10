@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const result = await collection.insertOne(body);
     console.log('Registration successful:', result);
     
-    return NextResponse.json({ message: 'Registration successful', id: result.insertedId }, { status: 201 })
+    return NextResponse.json({ message: 'Registration successful', userId: result.insertedId.toString() }, { status: 201 })
   } catch (error) {
     console.error('Registration error:', error)
     return NextResponse.json({ message: 'Error registering user' }, { status: 500 })
