@@ -34,8 +34,17 @@ function Scan() {
   return (
     <div>
       <div>
-        <QrReader
+      <QrReader
           constraints={{ facingMode: 'environment' }}
+          delay={500}
+          onError={handleError}
+          onScan={handleScan}
+          // chooseDeviceId={()=>selected}
+          style={{ width: "200px", heigth: "100px" }}
+        />
+        {/* <QrReader
+          constraints={{ facingMode: 'environment' }}
+          style={{ width: "200px", heigth: "100px" }}
           onResult={(result:any, error:any) => {
             if (result) {
                 handleScan(result?.getText());
@@ -44,7 +53,7 @@ function Scan() {
                 handleError(error);
             }
           }}
-        />
+        /> */}
         <p>{scannedData}</p>
       </div>
     </div>
