@@ -2,8 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import jsQR from 'jsqr'
-import { motion } from 'framer-motion'
-import { Camera, CheckCircle2, List, AlertCircle } from 'lucide-react'
+import { Camera, CheckCircle2, List, AlertCircle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -16,7 +15,7 @@ interface QRCode {
 }
 
 export default function QRCodeScanner() {
-  const [scanning, setScanning] = useState(false)
+  const [capturing, setCapturing] = useState(false)
   const [result, setResult] = useState<string | null>(null)
   const [savedCodes, setSavedCodes] = useState<QRCode[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -30,55 +29,47 @@ export default function QRCodeScanner() {
     }
   }, [])
 
-  const startScanning = async () => {
-    setScanning(true)
+  const startCapture = async () => {
+    setCapturing(true)
     setResult(null)
     setError(null)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
       if (videoRef.current) {
         videoRef.current.srcObject = stream
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current!.play()
-          requestAnimationFrame(scanQRCode)
-        }
+        videoRef.current.play()
       }
     } catch (err) {
       console.error('Error accessing camera:', err)
       setError('Unable to access the camera. Please make sure you have given permission and try again.')
-      setScanning(false)
+      setCapturing(false)
     }
   }
 
-  const stopScanning = () => {
-    setScanning(false)
+  const stopCapture = () => {
+    setCapturing(false)
     const stream = videoRef.current?.srcObject as MediaStream
     stream?.getTracks().forEach(track => track.stop())
   }
 
-  const scanQRCode = () => {
+  const captureImage = () => {
     if (videoRef.current && canvasRef.current) {
       const canvas = canvasRef.current
       const video = videoRef.current
-      
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
-        const ctx = canvas.getContext('2d')
-        if (ctx) {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-          const code = jsQR(imageData.data, imageData.width, imageData.height)
-          if (code) {
-            setResult(code.data)
-            stopScanning()
-            saveQRCodeData(code.data)
-          } else if (scanning) {
-            requestAnimationFrame(scanQRCode)
-          }
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+        const code = jsQR(imageData.data, imageData.width, imageData.height)
+        if (code) {
+          setResult(code.data)
+          saveQRCodeData(code.data)
+          stopCapture()
+        } else {
+          setError('No QR code found. Please try again.')
         }
-      } else if (scanning) {
-        requestAnimationFrame(scanQRCode)
       }
     }
   }
@@ -96,7 +87,7 @@ export default function QRCodeScanner() {
 
   useEffect(() => {
     return () => {
-      stopScanning()
+      stopCapture()
     }
   }, [])
 
@@ -108,24 +99,13 @@ export default function QRCodeScanner() {
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-4">
           <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gray-100">
-            {scanning && (
-              <>
-                <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" />
-                <motion.div
-                  className="absolute inset-0 border-4 border-white rounded-lg"
-                  animate={{
-                    scale: [1, 1.05, 1],
-                    opacity: [1, 0.5, 1],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                />
-              </>
-            )}
-            {!scanning && !result && (
+            {capturing ? (
+              <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" />
+            ) : result ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <CheckCircle2 className="w-16 h-16 text-green-500" />
+              </div>
+            ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <Camera className="w-16 h-16 text-gray-400" />
               </div>
@@ -141,16 +121,21 @@ export default function QRCodeScanner() {
           )}
           {result ? (
             <div className="text-center space-y-2">
-              <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto" />
               <p className="font-semibold">QR Code Scanned Successfully!</p>
               <p className="text-sm text-gray-500">{result}</p>
-              <Button onClick={() => { setResult(null); setScanning(false); }} className="mt-4">
+              <Button onClick={() => { setResult(null); setCapturing(false); }} className="mt-4">
                 Scan Another Code
+                <RefreshCw className="ml-2 h-4 w-4" />
               </Button>
             </div>
+          ) : capturing ? (
+            <Button onClick={captureImage} className="w-full">
+              Capture QR Code
+              <Camera className="ml-2 h-4 w-4" />
+            </Button>
           ) : (
-            <Button onClick={scanning ? stopScanning : startScanning} className="w-full">
-              {scanning ? 'Stop Scanning' : 'Start Scanning'}
+            <Button onClick={startCapture} className="w-full">
+              Start Camera
               <Camera className="ml-2 h-4 w-4" />
             </Button>
           )}
